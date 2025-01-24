@@ -1,5 +1,16 @@
 const apiUrl = "https://data.stad.gent/api/explore/v2.1/catalog/datasets/bezetting-parkeergarages-real-time/records?limit=20";
 const container = document.getElementById("container");
+
+
+//map maken
+let map = L.map('map').setView([51.053581, 3.722969], 13);
+//base map toevoegen
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+
 // functie voor het ophalen van de data
 async function fetchData() {
     
@@ -16,7 +27,8 @@ async function fetchData() {
         console.log("data.results", parkings);
 
         parkings.forEach(parkings => {
-            const {name, occupation, totalcapacity, availablecapacity , isopennow} = parkings;
+            
+            const {name, occupation, totalcapacity, availablecapacity , isopennow,location} = parkings;
             const occupied = occupation;
             const status = isopennow ? "open" : "closed";
 
@@ -27,10 +39,12 @@ async function fetchData() {
                  <p><strong> Occupied: </strong> ${occupied} / ${availablecapacity} </p>
                  <p><strong> Available: </strong>${availablecapacity - occupied} </p>
                  <p class="${isopennow ? 'open' : 'closed'}"><strong> Status: </strong>${status} </p>
-            `;
+            `;        
+            displayMap(location);
             container.appendChild(parkingDiv);
-            
         });
+
+
         console.log("Made and appended div's");
     } catch (error){
         console.error("ara~ ara~ you've made a mistake", error)
@@ -39,4 +53,14 @@ async function fetchData() {
     };
 };
 
-fetchData();
+function displayMap(location) {
+    const {lon, lat} = location;
+    const parkingIcon = L.icon({
+        iconUrl: 'https://cdn.worldvectorlogo.com/logos/google-maps-2020-icon.svg',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    });
+    L.marker([lat,lon], {icon: parkingIcon}).addTo(map);
+}
+
+fetchData()
